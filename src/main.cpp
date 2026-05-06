@@ -1,21 +1,47 @@
 #include <SFML/Graphics.hpp>
+#include <SFML/Window.hpp>
+#include <vector>
 
-int main()
-{
-	sf::RenderWindow window( sf::VideoMode( { 200, 200 } ), "SFML works!" );
-	sf::CircleShape shape( 100.f );
-	shape.setFillColor( sf::Color::Green );
+int main() {
+  sf::RenderWindow window(sf::VideoMode({800, 600}), "My window",
+                          sf::Style::Resize);
+  window.setPosition({10, 50});
 
-	while ( window.isOpen() )
-	{
-		while ( const std::optional event = window.pollEvent() )
-		{
-			if ( event->is<sf::Event::Closed>() )
-				window.close();
-		}
+  std::vector<sf::CircleShape> particles;
 
-		window.clear();
-		window.draw( shape );
-		window.display();
-	}
+  sf::CircleShape hole(50.f);
+  hole.setFillColor(sf::Color::Black);
+  hole.setOutlineThickness(1.f);
+  hole.setOutlineColor(sf::Color::Red);
+  hole.setPosition({400, 300});
+
+  // run the program as long as the window is open
+  while (window.isOpen()) {
+    // check all the window's events that were triggered since the last
+    // iteration of the loop
+    while (const std::optional event = window.pollEvent()) {
+      // "close requested" event: we close the window
+      if (event->is<sf::Event::Closed>())
+        window.close();
+      if (const auto *mouseButtonPressed =
+              event->getIf<sf::Event::MouseButtonPressed>()) {
+        sf::CircleShape particle(10.f);
+        particle.setFillColor(sf::Color(255, 255, 255));
+        sf::Vector2i mousePosition = mouseButtonPressed->position;
+        sf::Vector2f position({static_cast<float>(mousePosition.x),
+                               static_cast<float>(mousePosition.y)});
+        particle.setPosition(position);
+
+        particles.push_back(particle);
+      }
+    }
+    window.clear(sf::Color::Black);
+
+    for (auto &particle : particles) {
+      particle.move({.25f, 0.f});
+      window.draw(particle);
+    }
+    window.draw(hole);
+    window.display();
+  }
 }
